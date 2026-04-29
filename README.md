@@ -4,6 +4,8 @@
 ![Java](https://img.shields.io/badge/Java-24-blue)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![UI](https://img.shields.io/badge/UI-FlatLaf-orange)
+![Build](https://github.com/edjnolasco/INF5150-U07/actions/workflows/ci.yml/badge.svg)
+![Coverage](https://codecov.io/gh/edjnolasco/INF5150-U07/branch/main/graph/badge.svg)
 
 **Autor:** Edwin José Nolasco  
 
