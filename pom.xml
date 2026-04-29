@@ -64,26 +64,30 @@
             </plugin>
             
             <plugin>
-             <!-- Cobertura de código con JaCoCo -->
+            <!-- Cobertura de código con JaCoC -->
 			    <groupId>org.jacoco</groupId>
 			    <artifactId>jacoco-maven-plugin</artifactId>
 			    <version>0.8.12</version>
 			    <executions>
 			
-			        <!-- Instrumentación -->
 			        <execution>
 			            <goals>
 			                <goal>prepare-agent</goal>
 			            </goals>
 			        </execution>
 			
-			        <!-- Reporte -->
 			        <execution>
 			            <id>report</id>
 			            <phase>test</phase>
 			            <goals>
 			                <goal>report</goal>
 			            </goals>
+			            <configuration>
+			                <formats>
+			                    <format>XML</format>
+			                    <format>HTML</format>
+			                </formats>
+			            </configuration>
 			        </execution>
 			
 			    </executions>
