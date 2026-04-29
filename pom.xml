@@ -14,7 +14,7 @@
     <description>Unidad 07 - Interfaces gráficas en Java Swing con pruebas unitarias</description>
 
     <properties>
-        <maven.compiler.release>24</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.jupiter.version>5.11.4</junit.jupiter.version>
     </properties>
@@ -39,7 +39,7 @@
 
     <build>
         <plugins>
-            <!-- Compilación con Java 24 -->
+            <!-- Compilación con Java 21 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -62,6 +62,33 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.0</version>
             </plugin>
+            
+            <plugin>
+             <!-- Cobertura de código con JaCoCo -->
+			    <groupId>org.jacoco</groupId>
+			    <artifactId>jacoco-maven-plugin</artifactId>
+			    <version>0.8.12</version>
+			    <executions>
+			
+			        <!-- Instrumentación -->
+			        <execution>
+			            <goals>
+			                <goal>prepare-agent</goal>
+			            </goals>
+			        </execution>
+			
+			        <!-- Reporte -->
+			        <execution>
+			            <id>report</id>
+			            <phase>test</phase>
+			            <goals>
+			                <goal>report</goal>
+			            </goals>
+			        </execution>
+			
+			    </executions>
+			</plugin>
+            
         </plugins>
     </build>
 

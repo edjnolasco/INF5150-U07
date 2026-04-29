@@ -5,8 +5,6 @@ import javax.swing.SwingUtilities;
 
 /**
  * Ventana básica creada con JFrame.
- *
- * Este primer ejemplo muestra la estructura mínima de una ventana Swing.
  */
 public class VentanaBasica {
 
@@ -15,18 +13,16 @@ public class VentanaBasica {
     private static final int ALTO = 900;
 
     private VentanaBasica() {
-        // Evita instanciar esta clase de utilidad.
     }
 
     public static JFrame crearVentana() {
-        JFrame frame = new JFrame(TITULO);
-        frame.setSize(ANCHO, ALTO);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
-        return frame;
+        return WindowFactory.crearVentana(TITULO, ANCHO, ALTO);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> crearVentana().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            ThemeManager.aplicarTemaClaro();
+            crearVentana().setVisible(true);
+        });
     }
 }

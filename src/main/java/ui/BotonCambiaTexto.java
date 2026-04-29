@@ -5,13 +5,11 @@ import java.awt.FlowLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 /**
  * Ejemplo de botón que cambia el texto de una etiqueta.
- *
- * Introduce el concepto de evento: cuando el usuario hace clic,
- * se ejecuta una acción.
  */
 public class BotonCambiaTexto {
 
@@ -20,33 +18,23 @@ public class BotonCambiaTexto {
     private static final String TEXTO_CAMBIO = "¡Clic hecho!";
 
     private BotonCambiaTexto() {
-        // Evita instanciar esta clase de utilidad.
     }
 
     public static JFrame crearVentana() {
-        JFrame frame = new JFrame(TITULO);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(300, 150);
-        frame.setLayout(new FlowLayout());
+        JFrame frame = WindowFactory.crearVentana(TITULO, 320, 160);
 
-        JLabel label = crearLabel();
-        JButton button = crearBoton(label);
+        JLabel label = UiFactory.label(TEXTO_INICIAL);
+        JButton button = UiFactory.botonPrincipal("Cambiar");
 
-        frame.add(label);
-        frame.add(button);
-
-        frame.setLocationRelativeTo(null);
-        return frame;
-    }
-
-    static JLabel crearLabel() {
-        return new JLabel(TEXTO_INICIAL);
-    }
-
-    static JButton crearBoton(JLabel label) {
-        JButton button = new JButton("Cambiar");
         button.addActionListener(e -> cambiarTexto(label));
-        return button;
+
+        JPanel panel = UiFactory.panel(new FlowLayout());
+        panel.add(label);
+        panel.add(button);
+
+        frame.add(panel);
+
+        return frame;
     }
 
     static void cambiarTexto(JLabel label) {
@@ -54,6 +42,9 @@ public class BotonCambiaTexto {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> crearVentana().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            ThemeManager.aplicarTemaClaro();
+            crearVentana().setVisible(true);
+        });
     }
 }
