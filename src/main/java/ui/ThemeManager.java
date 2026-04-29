@@ -10,6 +10,8 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 /**
  * Administra el tema visual global de la aplicación.
+ *
+ * Permite alternar entre modo claro y modo oscuro usando FlatLaf.
  */
 public class ThemeManager {
 
@@ -44,7 +46,7 @@ public class ThemeManager {
                 UIManager.setLookAndFeel(new FlatLightLaf());
             }
 
-            aplicarAjustesComunes();
+            UiThemeConfig.aplicar();
             refrescarVentanas();
 
         } catch (Exception e) {
@@ -52,16 +54,6 @@ public class ThemeManager {
         }
     }
 
-    private static void aplicarAjustesComunes() {
-        UIManager.put("Button.arc", 18);
-        UIManager.put("Component.arc", 18);
-        UIManager.put("TextComponent.arc", 14);
-        UIManager.put("ScrollBar.width", 12);
-        UIManager.put("Table.showHorizontalLines", true);
-        UIManager.put("Table.showVerticalLines", false);
-        UIManager.put("Table.rowHeight", 28);
-    }
-    
     private static void refrescarVentanas() {
         for (Window window : Window.getWindows()) {
             SwingUtilities.updateComponentTreeUI(window);

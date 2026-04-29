@@ -8,12 +8,12 @@ import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
@@ -21,9 +21,13 @@ import domain.Producto;
 import domain.ProductoValidator;
 
 /**
- * Mini CRUD de productos.
+ * Mini CRUD de productos con exportación a CSV.
  *
- * Introduce JTable, botones de acción y validación desacoplada.
+ * Introduce:
+ * - JTable
+ * - Agregar, editar y eliminar registros
+ * - Validación desacoplada
+ * - Exportación de datos a CSV
  */
 public class InventarioApp {
 
@@ -33,33 +37,43 @@ public class InventarioApp {
     private final JFrame frame;
 
     public InventarioApp() {
-        frame = new JFrame("Inventario");
-        model = new DefaultTableModel(new String[] {"ID", "Nombre", "Precio"}, 0);
+        frame = WindowFactory.crearVentana("Inventario", 560, 340);
+
+        model = new DefaultTableModel(new String[] {"ID", "Nombre", "Precio"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
         tabla = new JTable(model);
+        tabla.setRowHeight(28);
+        tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabla.setAutoCreateRowSorter(true);
     }
 
     public JFrame crearVentana() {
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(500, 300);
         frame.setLayout(new BorderLayout());
 
-        JPanel panelBotones = new JPanel(new FlowLayout());
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-        JButton btnAgregar = new JButton("Agregar");
-        JButton btnEditar = new JButton("Editar");
-        JButton btnEliminar = new JButton("Eliminar");
+        JButton btnAgregar = UiFactory.boton("Agregar");
+        JButton btnEditar = UiFactory.boton("Editar");
+        JButton btnEliminar = UiFactory.boton("Eliminar");
+        JButton btnExportar = UiFactory.botonPrincipal("Exportar CSV");
 
         btnAgregar.addActionListener(e -> agregarProducto());
         btnEditar.addActionListener(e -> editarProducto());
         btnEliminar.addActionListener(e -> eliminarProducto());
+        btnExportar.addActionListener(e -> exportarInventario());
 
         panelBotones.add(btnAgregar);
         panelBotones.add(btnEditar);
         panelBotones.add(btnEliminar);
+        panelBotones.add(btnExportar);
 
         frame.add(new JScrollPane(tabla), BorderLayout.CENTER);
         frame.add(panelBotones, BorderLayout.SOUTH);
-        frame.setLocationRelativeTo(null);
 
         return frame;
     }
@@ -72,11 +86,12 @@ public class InventarioApp {
         }
 
         if (idsUsados.contains(producto.getId())) {
-            mostrarError("ID ya existe");
+            UiFactory.mostrarError(frame, "ID ya existe");
             return;
         }
 
         idsUsados.add(producto.getId());
+
         model.addRow(new Object[] {
                 producto.getId(),
                 producto.getNombre(),
@@ -88,13 +103,15 @@ public class InventarioApp {
         int row = tabla.getSelectedRow();
 
         if (row == -1) {
-            mostrarError("Selecciona una fila");
+            UiFactory.mostrarError(frame, "Selecciona una fila");
             return;
         }
 
-        String idActual = (String) model.getValueAt(row, 0);
-        String nombreActual = (String) model.getValueAt(row, 1);
-        String precioActual = model.getValueAt(row, 2).toString();
+        int modelRow = tabla.convertRowIndexToModel(row);
+
+        String idActual = (String) model.getValueAt(modelRow, 0);
+        String nombreActual = (String) model.getValueAt(modelRow, 1);
+        String precioActual = model.getValueAt(modelRow, 2).toString();
 
         Producto producto = mostrarDialogoProducto(idActual, nombreActual, precioActual);
 
@@ -103,42 +120,57 @@ public class InventarioApp {
         }
 
         if (!producto.getId().equals(idActual) && idsUsados.contains(producto.getId())) {
-            mostrarError("ID ya existe");
+            UiFactory.mostrarError(frame, "ID ya existe");
             return;
         }
 
         idsUsados.remove(idActual);
         idsUsados.add(producto.getId());
 
-        model.setValueAt(producto.getId(), row, 0);
-        model.setValueAt(producto.getNombre(), row, 1);
-        model.setValueAt(producto.getPrecio(), row, 2);
+        model.setValueAt(producto.getId(), modelRow, 0);
+        model.setValueAt(producto.getNombre(), modelRow, 1);
+        model.setValueAt(producto.getPrecio(), modelRow, 2);
     }
 
     private void eliminarProducto() {
         int row = tabla.getSelectedRow();
 
         if (row == -1) {
-            mostrarError("Selecciona una fila");
+            UiFactory.mostrarError(frame, "Selecciona una fila");
             return;
         }
 
-        String id = (String) model.getValueAt(row, 0);
+        int modelRow = tabla.convertRowIndexToModel(row);
+
+        String id = (String) model.getValueAt(modelRow, 0);
         idsUsados.remove(id);
-        model.removeRow(row);
+        model.removeRow(modelRow);
+    }
+
+    private void exportarInventario() {
+        try {
+            CsvExporter.exportar(tabla, "inventario.csv");
+            UiFactory.mostrarInfo(frame, "Inventario exportado correctamente: inventario.csv");
+        } catch (Exception ex) {
+            UiFactory.mostrarError(frame, "Error al exportar inventario: " + ex.getMessage());
+        }
     }
 
     private Producto mostrarDialogoProducto(String idInit, String nombreInit, String precioInit) {
-        JTextField txtId = new JTextField(idInit == null ? "" : idInit, 10);
-        JTextField txtNombre = new JTextField(nombreInit == null ? "" : nombreInit, 10);
-        JTextField txtPrecio = new JTextField(precioInit == null ? "" : precioInit, 10);
+        JTextField txtId = UiFactory.textField(10);
+        JTextField txtNombre = UiFactory.textField(10);
+        JTextField txtPrecio = UiFactory.textField(10);
 
-        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
-        panel.add(new JLabel("ID:"));
+        txtId.setText(idInit == null ? "" : idInit);
+        txtNombre.setText(nombreInit == null ? "" : nombreInit);
+        txtPrecio.setText(precioInit == null ? "" : precioInit);
+
+        JPanel panel = UiFactory.panel(new GridLayout(3, 2, 8, 8));
+        panel.add(UiFactory.label("ID:"));
         panel.add(txtId);
-        panel.add(new JLabel("Nombre:"));
+        panel.add(UiFactory.label("Nombre:"));
         panel.add(txtNombre);
-        panel.add(new JLabel("Precio:"));
+        panel.add(UiFactory.label("Precio:"));
         panel.add(txtPrecio);
 
         int opcion = JOptionPane.showConfirmDialog(
@@ -160,21 +192,15 @@ public class InventarioApp {
                     txtPrecio.getText()
             );
         } catch (IllegalArgumentException ex) {
-            mostrarError(ex.getMessage());
+            UiFactory.mostrarError(frame, ex.getMessage());
             return null;
         }
     }
 
-    private void mostrarError(String mensaje) {
-        JOptionPane.showMessageDialog(
-                frame,
-                mensaje,
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-        );
-    }
-
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new InventarioApp().crearVentana().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            ThemeManager.aplicarTemaClaro();
+            new InventarioApp().crearVentana().setVisible(true);
+        });
     }
 }

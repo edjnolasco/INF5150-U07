@@ -5,89 +5,73 @@ import java.awt.FlowLayout;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-import domain.Estudiante;
-import domain.EstudianteValidator;
-
 /**
- * Tabla de estudiantes con validación de datos.
+ * Ejemplo de JTable con exportación a CSV.
  */
 public class TablaEstudiantes {
 
     private TablaEstudiantes() {
-        // Evita instanciar esta clase de utilidad.
     }
 
     public static JFrame crearVentana() {
-        JFrame frame = new JFrame("Notas");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(400, 300);
-        frame.setLayout(new BorderLayout());
+        JFrame frame = WindowFactory.crearVentana("Tabla de Estudiantes", 600, 400);
 
-        String[] columnas = {"Nombre", "Nota"};
-        DefaultTableModel model = new DefaultTableModel(columnas, 0);
+        String[] columnas = {"Nombre", "Edad"};
+
+        DefaultTableModel model = new DefaultTableModel(columnas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
         JTable tabla = new JTable(model);
 
-        JPanel panelBottom = new JPanel(new FlowLayout());
+        // Configuración visual
+        tabla.setRowHeight(28);
+        tabla.setAutoCreateRowSorter(true);
 
-        JTextField txtNombre = new JTextField(10);
-        JTextField txtNota = new JTextField(3);
-        JButton btnAgregar = new JButton("Agregar fila");
+        JScrollPane scroll = new JScrollPane(tabla);
 
-        btnAgregar.addActionListener(e ->
-                manejarAgregar(frame, model, txtNombre, txtNota)
-        );
+        // Botones
+        JButton btnAgregar = UiFactory.boton("Agregar");
+        JButton btnExportar = UiFactory.botonPrincipal("Exportar CSV");
 
-        panelBottom.add(new JLabel("Nombre:"));
-        panelBottom.add(txtNombre);
-        panelBottom.add(new JLabel("Nota:"));
-        panelBottom.add(txtNota);
-        panelBottom.add(btnAgregar);
+        btnAgregar.addActionListener(e -> {
+            model.addRow(new Object[]{"Nuevo Estudiante", 20});
+        });
 
-        frame.add(new JScrollPane(tabla), BorderLayout.CENTER);
-        frame.add(panelBottom, BorderLayout.SOUTH);
+        btnExportar.addActionListener(e -> exportar(frame, tabla));
 
-        frame.setLocationRelativeTo(null);
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelBotones.add(btnAgregar);
+        panelBotones.add(btnExportar);
+
+        frame.add(scroll, BorderLayout.CENTER);
+        frame.add(panelBotones, BorderLayout.SOUTH);
+
         return frame;
     }
 
-    static void manejarAgregar(JFrame frame,
-                               DefaultTableModel model,
-                               JTextField txtNombre,
-                               JTextField txtNota) {
-
+    private static void exportar(JFrame frame, JTable tabla) {
         try {
-            Estudiante estudiante = EstudianteValidator.crear(
-                    txtNombre.getText(),
-                    txtNota.getText()
-            );
-
-            model.addRow(new Object[] {
-                    estudiante.getNombre(),
-                    estudiante.getNota()
-            });
-
-            txtNombre.setText("");
-            txtNota.setText("");
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(
-                    frame,
-                    ex.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            CsvExporter.exportar(tabla, "estudiantes.csv");
+            UiFactory.mostrarInfo(frame, "Archivo exportado: estudiantes.csv");
+        } catch (Exception ex) {
+            UiFactory.mostrarError(frame, "Error al exportar: " + ex.getMessage());
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> crearVentana().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            ThemeManager.aplicarTemaClaro();
+            crearVentana().setVisible(true);
+        });
     }
 }
